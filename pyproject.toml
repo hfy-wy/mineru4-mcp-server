@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mineru-selfhosted-mcp"
+version = "0.1.0"
+description = "Self-hosted MinerU 4.0 V1 API MCP server — async task model, side-channel upload, multi-format downloads"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "mineru-selfhosted-mcp" }]
+keywords = ["mineru", "mcp", "pdf", "document-parsing", "fastmcp"]
+dependencies = [
+    "fastmcp>=2.11,<4",
+    "httpx>=0.27",
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+    "python-multipart>=0.0.9",
+    "pydantic>=2",
+    "psycopg[binary,pool]>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+]
+
+[project.scripts]
+mineru-selfhosted-mcp = "mineru_selfhosted_mcp.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mineru_selfhosted_mcp"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

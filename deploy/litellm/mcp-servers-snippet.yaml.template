@@ -1,0 +1,29 @@
+# TEMPLATE — rendered by scripts/render_env.sh from deploy/env/{test,prod}.env
+# into deploy/generated/mcp-servers-snippet.<mode>.generated.yaml (gitignored).
+#
+# liteLLM proxy snippet — merge into config.yaml on the liteLLM host (port 4000).
+#
+# Verified working (2026-09-28): per-server route {{LITELLM_MCP_URL}}
+# Tool names through the gateway are PREFIXED with the server alias:
+#   mineru_selfhosted-parse_documents, mineru_selfhosted-mineru_health, ...
+# (direct connections to {{MINERU_MCP_URL}}/mcp see the unprefixed names)
+#
+# Only MCP JSON-RPC flows through the proxy. Binary uploads go DIRECT to the
+# MCP server host ({{MINERU_UPLOAD_URL}}) regardless of proxy.
+#
+# Multi-user journal (F6): the MCP server records per-user task rows. The
+# client header X-Mineru-User is DROPPED by the proxy unless it is listed in
+# extra_headers below (verified 2026-09-28: without extra_headers the header
+# never reaches the MCP server and jobs record as anonymous). Alternatively
+# have the gateway inject identity with static_headers.
+
+mcp_servers:
+  mineru_selfhosted:
+    url: "{{MINERU_MCP_URL}}/mcp"
+    transport: "http"
+    extra_headers: ["X-Mineru-User"]         # forward client identity to the journal
+    # static_headers:                        # alternative: gateway-side injection
+    #   X-Mineru-User: "litellm-gateway"
+    # If MINERU_MCP_TOKEN is set on the MCP server, authenticate upstream:
+    # auth_type: "bearer_token"
+    # auth_value: "os.environ/MINERU_MCP_TOKEN"

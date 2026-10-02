@@ -1,0 +1,79 @@
+# TEMPLATE — rendered by scripts/render_env.sh from deploy/env/{test,prod}.env
+# into deploy/generated/docker-compose.<mode>.generated.yml (gitignored).
+#
+# Production topology on 192.168.210.251 — same docker-compose style as the
+# existing MinerU router/api/webui stack on that host:
+#   mineru-selfhosted-mcp (:7000, this project)  +  postgres:16 (F6 journal DB)
+# Both services on a self-contained bridge network "net-api-network".
+# The MCP container reaches the MinerU router through the host IP
+# ({{MINERU_BASE_URL}}, published by the router's own compose stack).
+# Agents reach the MCP server through the published :7000 — uploads/downloads
+# URLs therefore advertise {{MINERU_PUBLIC_BASE_URL}}.
+#
+# Deploy: unpack the prod package, copy this rendered file as docker-compose.yml
+# next to src/, then: docker compose up -d --build
+
+services:
+  mineru-mcp:
+    build:
+      context: .
+      dockerfile: deploy/docker/Dockerfile
+    image: mineru-selfhosted-mcp:0.1.0
+    container_name: mineru-selfhosted-mcp
+    restart: always
+    ports:
+      - "7000:7000"
+    environment:
+      # MinerU router (V1 gateway), via the host IP from inside the bridge network
+      MINERU_BASE_URL: {{MINERU_BASE_URL}}
+      # Public base for download/upload URLs — host IP, NOT the container name
+      MINERU_PUBLIC_BASE_URL: {{MINERU_PUBLIC_BASE_URL}}
+      # Journal DB = the postgre16 service below (compose-internal DNS name);
+      # tables auto-create on first start (mineru_jobs / mineru_job_events)
+      MINERU_PG_DSN: postgresql://mineru:mineru@postgre16:5432/mineru_mcp
+      # PRODUCTION: uncomment to protect /mcp + /upload with a Bearer token.
+      # Direct clients then send Authorization: Bearer <token>; the liteLLM
+      # mcp_servers entry needs auth_type: bearer_token + auth_value.
+      #MINERU_MCP_TOKEN: change-me
+    volumes:
+      - mineru_mcp_data:/data          # Dockerfile maps /data/uploads + /data/output
+    depends_on:
+      postgre16:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:7000/healthz')"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - net-api-network
+
+  postgre16:
+    image: postgres:16
+    container_name: postgres16
+    restart: always
+    environment:
+      POSTGRES_USER: mineru
+      POSTGRES_PASSWORD: mineru
+      POSTGRES_DB: mineru_mcp          # matches MINERU_PG_DSN above
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mineru"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"                    # host access for psql/DBA tools; the MCP
+                                     # container uses the internal name postgre16
+    networks:
+      - net-api-network
+
+volumes:
+  mineru_mcp_data:
+  postgres_data:
+
+networks:
+  net-api-network:
+    driver: bridge

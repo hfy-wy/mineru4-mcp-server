@@ -1,0 +1,32 @@
+{
+  "mcpServers": {
+    "mineru_selfhosted": {
+      "type": "http",
+      "url": "{{LITELLM_MCP_URL}}",
+      "headers": {
+        "Authorization": "Bearer <LITELLM_KEY>",
+        "X-Mineru-User": "<your-name>"
+      }
+    }
+  }
+
+  // TEMPLATE — rendered by scripts/render_env.sh from deploy/env/{test,prod}.env
+  // into deploy/generated/claude-code.mcp.<mode>.generated.json (gitignored).
+  //
+  // Tool names through the gateway are prefixed: mineru_selfhosted-parse_documents, ...
+  //
+  // Alternative — DIRECT to the MCP server (unprefixed tool names, no Bearer):
+  // "mcpServers": {
+  //   "mineru": {
+  //     "type": "http",
+  //     "url": "{{MINERU_MCP_URL}}/mcp"
+  //   }
+  // }
+  //
+  // If MINERU_MCP_TOKEN is set on the server, add:
+  //   "headers": { "Authorization": "Bearer ${MINERU_MCP_TOKEN}" }
+  //
+  // Multi-user journal (F6): X-Mineru-User works DIRECT always; through the
+  // gateway it only reaches the journal if liteLLM lists it in
+  // extra_headers: ["X-Mineru-User"] for this mcp server.
+}

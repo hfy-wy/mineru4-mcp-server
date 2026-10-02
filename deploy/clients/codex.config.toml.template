@@ -1,0 +1,27 @@
+# TEMPLATE — rendered by scripts/render_env.sh from deploy/env/{test,prod}.env
+# into deploy/generated/codex.config.<mode>.generated.toml (gitignored).
+#
+# OpenAI Codex CLI — add to ~/.codex/config.toml
+# Direct to the MCP server at {{MINERU_MCP_URL}}:
+
+[mcp_servers.mineru]
+url = "{{MINERU_MCP_URL}}/mcp"
+startup_timeout_sec = 20
+tool_timeout_sec = 600          # parse jobs can run long; query_job_status polls
+
+# --- Alternative: via liteLLM proxy ---
+# [mcp_servers.mineru_selfhosted]
+# url = "{{LITELLM_MCP_URL}}"
+# http_headers = { "Authorization" = "Bearer sk-…" }
+# NOTE: through the gateway tool names are prefixed (mineru_selfhosted-…);
+# direct {{MINERU_MCP_URL}}/mcp uses unprefixed names.
+
+# --- If MINERU_MCP_TOKEN is set on the server ---
+# http_headers = { "Authorization" = "Bearer change-me" }
+
+# --- Multi-user journal (F6): tag identity for the /ui board ---
+# http_headers = { "X-Mineru-User" = "bob" }
+
+# Optional: per-tool approval policy
+# [mcp_servers.mineru.tools.parse_documents]
+# approval_mode = "auto"
