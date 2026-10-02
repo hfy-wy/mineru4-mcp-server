@@ -6,7 +6,6 @@ __pycache__/
 *.pyc
 
 uploads/
-豆包代码/
 pdf/
 docs/
 test-uploads/
@@ -15,12 +14,7 @@ test-output/
 server.log
 mock.log
 *.log
-mineru-mcp的开发过程.txt
-框架功能分析.md
-项目总结报告.md
 .env
-CLAUDE.md
-.claude/
 
 # rendered deploy artifacts (never commit)
 deploy/generated/
